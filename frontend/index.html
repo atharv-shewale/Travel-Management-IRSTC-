@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YatraAI - Smart Train Travel Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="chat-header">
+            <div class="logo">
+                <span class="icon">🚆</span>
+                <h1>YatraAI</h1>
+            </div>
+            <p class="subtitle">Your AI Train Travel Agent</p>
+        </header>
+
+        <main class="chat-window" id="chat-window">
+            <div class="message ai-message">
+                <div class="avatar">🤖</div>
+                <div class="content">
+                    Hello! I'm YatraAI, your personal train travel assistant. I can help you search for trains, check schedules, fares, seat availability, and PNR status. How can I help you today?
+                </div>
+            </div>
+            <!-- Messages will be appended here -->
+        </main>
+
+        <div class="typing-indicator hidden" id="typing-indicator">
+            <span></span><span></span><span></span>
+        </div>
+
+        <footer class="chat-input-area">
+            <form id="chat-form">
+                <input type="text" id="user-input" placeholder="e.g. Search trains from Delhi to Mumbai tomorrow..." autocomplete="off" required>
+                <button type="submit" id="send-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
