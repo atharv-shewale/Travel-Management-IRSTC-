@@ -36,33 +36,34 @@ train-chatbot/
    ```bash
    cd backend
    ```
-2. Create and activate a virtual environment (optional but recommended):
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On Mac/Linux:
-   source venv/bin/activate
-   ```
-3. Install dependencies:
+2. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Set up environment variables:
-   - Copy `.env.example` to `.env`
-   - Add your OpenAI API Key: `OPENAI_API_KEY=your-api-key-here`
+3. Set up environment variables:
+   - Create a `.env` file in the `backend` directory.
+   - Add your Groq API Key: `GROQ_API_KEY=your-api-key-here`
 
-5. Run the FastAPI server:
+4. Run the FastAPI server:
    ```bash
    python main.py
    ```
    *The server will start on `http://localhost:8000`*
 
 ### 2. Frontend Setup
-The frontend uses vanilla web technologies and does not require a build step.
-Simply open `frontend/index.html` directly in your web browser. 
-
-*(Alternatively, use a tool like Live Server in VS Code to serve it locally).*
+1. Navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   *The frontend will be available at the URL provided by Vite (usually http://localhost:5173).*
 
 ## Usage
 1. Open `index.html` in your browser.

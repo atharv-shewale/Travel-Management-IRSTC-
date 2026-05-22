@@ -1,6 +1,7 @@
 import random
 import logging
 from functools import lru_cache
+from database import save_booking, get_booking
 
 logger = logging.getLogger(__name__)
 
@@ -90,9 +91,41 @@ def check_availability(train_number: str, date: str, travel_class: str):
 def get_pnr_status(pnr_number: str):
     """
     Mock API call to check PNR status.
-    Returns standard PNR Object JSON format.
+    First looks up SQLite database for active bookings, then falls back to randomized values.
     """
     logger.info(f"API CALL: get_pnr_status | PNR: {pnr_number}")
+    
+    try:
+        db_booking = get_booking(pnr_number)
+        if db_booking:
+            logger.info(f"PNR Match found in SQLite: {pnr_number}")
+            return {
+                "status": "success",
+                "data": {
+                    "pnr_number": pnr_number,
+                    "status": db_booking.get("status", "CONFIRMED"),
+                    "train_number": db_booking.get("train_number"),
+                    "train_name": db_booking.get("train_name"),
+                    "date": db_booking.get("date"),
+                    "travel_class": db_booking.get("travel_class"),
+                    "passenger": db_booking.get("passenger_name"),
+                    "age": db_booking.get("age"),
+                    "coach": db_booking.get("coach"),
+                    "berth": db_booking.get("berth"),
+                    "passengers": [
+                        {
+                            "name": db_booking.get("passenger_name"),
+                            "age": db_booking.get("age"),
+                            "berth": f"{db_booking.get('coach')}-{db_booking.get('berth')}",
+                            "status": db_booking.get("status", "CONFIRMED")
+                        }
+                    ]
+                }
+            }
+    except Exception as e:
+        logger.error(f"Error checking PNR in DB: {e}")
+
+    # Fallback to randomized values if PNR not in database
     statuses = ["CNF", "RAC", "WL"]
     status = random.choice(statuses)
     
@@ -113,3 +146,109 @@ def get_pnr_status(pnr_number: str):
             "passengers": passengers
         }
     }
+
+def book_ticket(train_number: str, date: str, travel_class: str, passenger_name: str, age: int):
+    """
+    Mock API call to book a ticket and persist it in SQLite database.
+    """
+    logger.info(f"API CALL: book_ticket | Train: {train_number}, Date: {date}, Class: {travel_class}, Passenger: {passenger_name}")
+    
+    # Generate a mock PNR
+    pnr = "".join([str(random.randint(0, 9)) for _ in range(10)])
+    coach = f"B{random.randint(1, 5)}"
+    berth = random.randint(1, 72)
+    
+    # Construct booking payload
+    booking_payload = {
+        "pnr_number": pnr,
+        "train_number": train_number,
+        "train_name": f"EXP #{train_number}",
+        "date": date,
+        "travel_class": travel_class,
+        "passenger": passenger_name,
+        "age": age,
+        "status": "CONFIRMED",
+        "coach": coach,
+        "berth": berth
+    }
+    
+    # Persist in Database
+    try:
+        save_booking(booking_payload)
+        logger.info(f"Successfully persisted booking to SQLite: {pnr}")
+    except Exception as e:
+        logger.error(f"Database save failed for PNR {pnr}: {e}")
+        
+    return {
+        "status": "success",
+        "message": "Ticket booked successfully!",
+        "data": booking_payload
+    }
+
+def get_itinerary_suggestions(destination: str, days: int = 2):
+    """
+    Retrieve tourist attractions, food recommendations, and a day-by-day plan for a city.
+    """
+    logger.info(f"API CALL: get_itinerary_suggestions | Dest: {destination}, Days: {days}")
+    dest_lower = destination.lower()
+    
+    itineraries = {
+        "delhi": {
+            "highlights": ["Red Fort", "Qutub Minar", "India Gate", "Lotus Temple", "Chandni Chowk"],
+            "foods": ["Chole Bhature", "Paranthas of Chandni Chowk", "Butter Chicken", "Jalebi"],
+            "tips": "Use the Delhi Metro for fastest transit. Best visited from October to March.",
+            "schedule": [
+                {"day": 1, "title": "Historic Old Delhi Tour", "activities": ["Morning exploration of Red Fort", "Rickshaw ride through Chandni Chowk", "Spiced lunch at Karim's", "Afternoon visit to Jama Masjid"]},
+                {"day": 2, "title": "Modern New Delhi Sightseeing", "activities": ["Drive past India Gate and Parliament House", "Explore Humayun's Tomb", "Peaceful walk at Lotus Temple", "Evening shopping at Connaught Place"]}
+            ]
+        },
+        "mumbai": {
+            "highlights": ["Gateway of India", "Marine Drive", "Siddhivinayak Temple", "Elephanta Caves", "Colaba Causeway"],
+            "foods": ["Vada Pav", "Pav Bhaji", "Bhel Puri", "Bombay Sandwich", "Irani Chai"],
+            "tips": "Try local trains for non-peak hours. Best time is November to February.",
+            "schedule": [
+                {"day": 1, "title": "Colonial Charm & Marine Vibes", "activities": ["Sunrise at Gateway of India", "Walk through Colaba Heritage streets", "Ferry to Elephanta Caves", "Sunset stroll and street food at Marine Drive"]},
+                {"day": 2, "title": "Cultural Icons & Markets", "activities": ["Morning visit to Siddhivinayak Temple", "Dharavi tour / Dhobi Ghat photo-op", "Shopping at Crawford Market", "Dinner at iconic Cafe Leopold"]}
+            ]
+        },
+        "jaipur": {
+            "highlights": ["Hawa Mahal", "Amber Fort", "City Palace", "Jantar Mantar", "Chokhi Dhani"],
+            "foods": ["Dal Baati Churma", "Pyaaz Kachori", "Gatte ki Sabji", "Lassi at Lassiwala"],
+            "tips": "Hire an authorized tour guide at Amber Fort. Best visited in Winter.",
+            "schedule": [
+                {"day": 1, "title": "Forts & Royal Grandeur", "activities": ["Morning ascent to Amber Fort", "Photo stop at Jal Mahal (Water Palace)", "Explore Hawa Mahal (Palace of Winds)", "Evening cultural experience at Chokhi Dhani"]},
+                {"day": 2, "title": "Palaces & Local Craft Bazaars", "activities": ["Explore City Palace Museum", "See astronomical instruments at Jantar Mantar", "Shopping for block prints & gems at Johri Bazaar", "Royal dinner inside Amer Fort"]}
+            ]
+        }
+    }
+    
+    # Fallback default itinerary
+    default_itinerary = {
+        "highlights": ["Historic Architecture", "Local Landmarks", "Cultural Museum", "Central Bazaar"],
+        "foods": ["Local Traditional Delicacies", "Popular Regional Desserts", "Street Food Specials"],
+        "tips": "Check local weather and operational hours for attractions beforehand.",
+        "schedule": [
+            {"day": 1, "title": "Sights & Heritage Discovery", "activities": ["Morning walking tour of the prominent heritage circle", "Lunch at a well-reviewed traditional eatery", "Afternoon exploring local museums and monuments"]},
+            {"day": 2, "title": "Shopping Bazaars & Sunset Views", "activities": ["Explore local handicraft and textile markets", "Try famous street food snacks and beverages", "Enjoy sunset from a scenic overlook"]}
+        ]
+    }
+    
+    matched_data = default_itinerary
+    matched_city = destination.capitalize()
+    
+    for city, data in itineraries.items():
+        if city in dest_lower or dest_lower in city:
+            matched_data = data
+            matched_city = city.capitalize()
+            break
+            
+    if days == 1:
+        matched_data = matched_data.copy()
+        matched_data["schedule"] = matched_data["schedule"][:1]
+        
+    return {
+        "status": "success",
+        "destination": matched_city,
+        "data": matched_data
+    }
+
